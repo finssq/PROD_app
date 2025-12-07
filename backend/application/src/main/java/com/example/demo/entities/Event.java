@@ -59,4 +59,12 @@ public class Event {
                 inverseJoinColumns = @JoinColumn(name = "user_profile_id")
         )
         private Set<UserProfile> participants = new HashSet<>();
+
+        @ManyToMany
+        @JoinTable(
+                name = "event_likes",
+                joinColumns = @JoinColumn(name = "event_id"),
+                inverseJoinColumns = @JoinColumn(name = "user_profile_id")
+        )
+        private Set<UserProfile> likes = new HashSet<>();
 }

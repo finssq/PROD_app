@@ -13,6 +13,8 @@ public record EventResponse(
     LocalDateTime  eventTime,
     String place,
     Set<String> tags,
-    Set<UserProfileResponse> participantIds
+    Set<UserProfileResponse> participantIds,
+    Integer likeCount,
+    Boolean likedByCurrentUser
 ) {}
 

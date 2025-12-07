@@ -13,6 +13,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -59,4 +61,13 @@ public class UserProfile {
         @Column(name = "interest")
         @Builder.Default
         private Set<String> interests = new HashSet<>();
+
+        @ManyToMany
+        @JoinTable(
+                name = "user_profile_stars",
+                joinColumns = @JoinColumn(name = "target_user_id"),     
+                inverseJoinColumns = @JoinColumn(name = "from_user_id") 
+        )
+        @Builder.Default
+        private Set<UserProfile> stars = new HashSet<>();
 }

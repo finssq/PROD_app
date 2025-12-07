@@ -13,6 +13,7 @@ import 'package:teste/models/user_post.dart';
 import 'package:teste/screens/auth_screen.dart';
 import 'package:flutter/semantics.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:teste/screens/tabs/my_projects_tab.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -1660,7 +1661,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
       Navigator.push(
       context,
       MaterialPageRoute(
-      builder: (context) => (const MyEventsTab()), // <-- сюда твоя вкладка
+      builder: (context) => (const MyProjectsTab()), // <-- сюда твоя вкладка
     ),
   );
     },

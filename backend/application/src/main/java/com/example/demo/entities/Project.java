@@ -7,6 +7,8 @@ import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -54,4 +56,16 @@ public class Project {
                 inverseJoinColumns = @JoinColumn(name = "user_profile_id")
         )
         private Set<UserProfile> participants = new HashSet<>();
+        private String invitationCode; 
+
+        @ManyToMany
+        @JoinTable(
+                name = "project_likes",
+                joinColumns = @JoinColumn(name = "project_id"),
+                inverseJoinColumns = @JoinColumn(name = "user_profile_id")
+        )
+        private Set<UserProfile> likes = new HashSet<>();
+
+        @Enumerated(EnumType.STRING)
+        private ProjectStatus status;
 }

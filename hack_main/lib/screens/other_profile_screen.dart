@@ -176,7 +176,7 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
                                       .map((skill) => Chip(
                                             label: Text(skill),
                                             backgroundColor:
-                                               Colors.purple,
+                                               const Color.fromARGB(255, 68, 42, 94),
                                           ))
                                       .toList(),
                                 ),
@@ -193,7 +193,7 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
                                       .map((interest) => Chip(
                                             label: Text(interest),
                                             backgroundColor:
-                                                Colors.deepPurpleAccent,
+                                                const Color(0xFF7B4DA0),
                                           ))
                                       .toList(),
                                 ),

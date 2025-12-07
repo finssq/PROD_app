@@ -6,5 +6,6 @@ public record EventSearchRequest(
     String name,
     String eventTime,
     String place,
-    Set<String> tags
+    Set<String> tags,
+    Boolean onlyMyEvents
 ) {}

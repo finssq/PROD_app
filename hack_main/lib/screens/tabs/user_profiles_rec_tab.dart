@@ -36,7 +36,6 @@ class UserProfileRec {
   }
 }
 
-/// ---------- ВКЛАДКА: ПРОФИЛИ ----------
 class UserProfilesRecTab extends StatefulWidget {
   const UserProfilesRecTab({super.key});
 
@@ -75,7 +74,7 @@ class _UserProfilesRecTabState extends State<UserProfilesRecTab> {
         setState(() => loading = false);
       }
     } catch (e) {
-      print("❌ ERROR loading profiles: $e");
+      print("ERROR loading profiles: $e");
       setState(() => loading = false);
     }
   }
@@ -91,7 +90,7 @@ class _UserProfilesRecTabState extends State<UserProfilesRecTab> {
         );
       },
       child: Card(
-        color: const Color(0xFF2A1B3D),
+        color: const Color(0xFF2A1B3D), // тёмно-фиолетовый фон
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
@@ -102,11 +101,14 @@ class _UserProfilesRecTabState extends State<UserProfilesRecTab> {
               Row(
                 children: [
                   Expanded(
-                    child: Text("${user.firstName} ${user.lastName}",
-                        style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
+                    child: Text(
+                      "${user.firstName} ${user.lastName}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                   Chip(
                     label: Text(
@@ -119,29 +121,35 @@ class _UserProfilesRecTabState extends State<UserProfilesRecTab> {
               ),
               const SizedBox(height: 8),
               if (user.description.isNotEmpty)
-                Text(user.description,
-                    style: const TextStyle(color: Colors.white70)),
+                Text(
+                  user.description,
+                  style: const TextStyle(color: Colors.white70),
+                ),
               const SizedBox(height: 8),
               if (user.skills.isNotEmpty)
                 Wrap(
                   spacing: 6,
                   children: user.skills
-                      .map((s) => Chip(
-                            label: Text(s),
-                            backgroundColor: Colors.deepPurpleAccent,
-                            labelStyle: const TextStyle(color: Colors.white),
-                          ))
+                      .map(
+                        (s) => Chip(
+                          label: Text(s),
+                          backgroundColor: const Color.fromARGB(255, 68, 42, 94),
+                          labelStyle: const TextStyle(color: Colors.white),
+                        ),
+                      )
                       .toList(),
                 ),
               if (user.interests.isNotEmpty)
                 Wrap(
                   spacing: 6,
                   children: user.interests
-                      .map((i) => Chip(
-                            label: Text(i),
-                            backgroundColor: Colors.purple,
-                            labelStyle: const TextStyle(color: Colors.white),
-                          ))
+                      .map(
+                        (i) => Chip(
+                          label: Text(i),
+                          backgroundColor: const Color(0xFF7B4DA0),
+                          labelStyle: const TextStyle(color: Colors.white),
+                        ),
+                      )
                       .toList(),
                 ),
             ],
@@ -159,20 +167,21 @@ class _UserProfilesRecTabState extends State<UserProfilesRecTab> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color.fromRGBO(37, 22, 53, 1),
-            Color.fromRGBO(26, 15, 41, 1),
-            Color.fromRGBO(8, 8, 17, 1),
+            Color(0xFF1B0E2F),
+            Color(0xFF2A1B3D),
+            Color(0xFF0D0415),
           ],
         ),
       ),
       child: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.purpleAccent))
           : profiles.isEmpty
               ? const Center(
                   child: Text(
-                  "Нет рекомендаций",
-                  style: TextStyle(color: Colors.white),
-                ))
+                    "Нет рекомендаций",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                )
               : ListView.builder(
                   itemCount: profiles.length,
                   itemBuilder: (_, i) => _buildProfileCard(profiles[i]),
@@ -183,14 +192,18 @@ class _UserProfilesRecTabState extends State<UserProfilesRecTab> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'WANT_COLLABORATE':
-        return const Color.fromARGB(141, 76, 175, 79);
-      case 'WANT_PROJECT':
-        return Colors.blue;
-      case 'OPEN_TO_WORK':
-        return Colors.orange;
-      case 'BUSY':
-        return Colors.red;
-      case 'UNAVAILABLE':
+        return const Color(0xFF8E44AD);
+      case 'EXPLORING_OPPORTUNITIES':
+        return const Color(0xFF9B59B6);
+      case 'OPEN_TO_COLLABORATION':
+        return const Color(0xFF6C3483);
+      case 'AVAILABLE_FOR_FEEDBACK':
+        return const Color(0xFF5B2C6F);
+      case 'LEADING_PROJECT':
+        return const Color(0xFF7D3C98);
+      case 'LOOKING_FOR_TEAM':
+        return const Color(0xFF4A235A);
+      case 'NOT_AVAILABLE':
         return Colors.grey;
       default:
         return Colors.black;
@@ -200,14 +213,18 @@ class _UserProfilesRecTabState extends State<UserProfilesRecTab> {
   String _getStatusText(String status) {
     switch (status) {
       case 'WANT_COLLABORATE':
-        return 'Ищет сотрудничество';
-      case 'WANT_PROJECT':
-        return 'Ищет проект';
-      case 'OPEN_TO_WORK':
-        return 'Открыт к работе';
-      case 'BUSY':
-        return 'Занят';
-      case 'UNAVAILABLE':
+        return 'Хочу сотрудничать';
+      case 'EXPLORING_OPPORTUNITIES':
+        return 'Ищу возможности';
+      case 'OPEN_TO_COLLABORATION':
+        return 'Открыт к сотрудничеству';
+      case 'AVAILABLE_FOR_FEEDBACK':
+        return 'Готов давать советы';
+      case 'LEADING_PROJECT':
+        return 'Веду проект';
+      case 'LOOKING_FOR_TEAM':
+        return 'Ищу команду';
+      case 'NOT_AVAILABLE':
         return 'Недоступен';
       default:
         return status;

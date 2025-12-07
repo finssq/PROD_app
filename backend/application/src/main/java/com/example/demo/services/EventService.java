@@ -77,7 +77,8 @@ public class EventService {
                 null,        
                 null,        
                 null,       
-                userInterests  
+                userInterests,
+                false
         );
 
         List<EventResponse> events = search(request);
@@ -181,76 +182,98 @@ public class EventService {
                     .collect(Collectors.toList());
         }
 
+        if (Boolean.TRUE.equals(request.onlyMyEvents())) {
+
+        UUID currentUserId = getCurrentUserId();
+
+        events = events.stream()
+                .filter(event -> event.getOrganizer() != null &&
+                        event.getOrganizer().getId().equals(currentUserId))
+                .collect(Collectors.toList());
+        }
+
         return events.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
-    private UUID getCurrentUserId() {
-        IUserProfile principal =
-                (IUserProfile) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return UUID.fromString(principal.getUserId());
-    }
+        public EventResponse likeEvent(Long eventId) {
 
-    private EventResponse toDto(Event event) {
-        return new EventResponse(
-                event.getId(),
-                new UserProfileResponse(
-                        event.getOrganizer().getId(),
-                        event.getOrganizer().getFirstName(),
-                        event.getOrganizer().getLastName(),
-                        event.getOrganizer().getDescription(),
-                        event.getOrganizer().getStatus(),
-                        event.getOrganizer().getSkills(),
-                        event.getOrganizer().getInterests()
-                ),
-                event.getName(),
-                event.getDescription(),
-                event.getEventTime(),
-                event.getPlace(),
-                event.getTags(),
-                event.getParticipants().stream()
-                        .map(p -> new UserProfileResponse(
-                                p.getId(),
-                                p.getFirstName(),
-                                p.getLastName(),
-                                p.getDescription(),
-                                p.getStatus(),
-                                p.getSkills(),
-                                p.getInterests()
-                        ))
-                        .collect(Collectors.toSet())
-        );
-    }
+                Event event = eventRepository.findById(eventId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
 
-    private EventResponse toDto(Event event, Set<UserProfile> filteredParticipants) {
-        return new EventResponse(
-                event.getId(),
-                new UserProfileResponse(
-                        event.getOrganizer().getId(),
-                        event.getOrganizer().getFirstName(),
-                        event.getOrganizer().getLastName(),
-                        event.getOrganizer().getDescription(),
-                        event.getOrganizer().getStatus(),
-                        event.getOrganizer().getSkills(),
-                        event.getOrganizer().getInterests()
-                ),
-                event.getName(),
-                event.getDescription(),
-                event.getEventTime(),
-                event.getPlace(),
-                event.getTags(),
-                filteredParticipants.stream()
-                        .map(p -> new UserProfileResponse(
-                                p.getId(),
-                                p.getFirstName(),
-                                p.getLastName(),
-                                p.getDescription(),
-                                p.getStatus(),
-                                p.getSkills(),
-                                p.getInterests()
-                        ))
-                        .collect(Collectors.toSet())
-        );
-    }
+                UUID userId = getCurrentUserId();
+
+                UserProfile user = userProfileRepository.findById(userId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+                event.getLikes().add(user);
+
+                return toDto(eventRepository.save(event));
+        }
+
+        public EventResponse unlikeEvent(Long eventId) {
+
+                Event event = eventRepository.findById(eventId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
+
+                UUID userId = getCurrentUserId();
+
+                UserProfile user = userProfileRepository.findById(userId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+                event.getLikes().remove(user);
+
+                return toDto(eventRepository.save(event));
+        }
+
+        private UUID getCurrentUserId() {
+                IUserProfile principal =
+                        (IUserProfile) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                return UUID.fromString(principal.getUserId());
+        }
+
+        private EventResponse toDto(Event event) {
+                UUID currentUserId = getCurrentUserId();
+
+                boolean liked = event.getLikes().stream()
+                        .anyMatch(u -> u.getId().equals(currentUserId));
+
+                return new EventResponse(
+                        event.getId(),
+                        UserProfileResponse.from(event.getOrganizer(), currentUserId),
+                        event.getName(),
+                        event.getDescription(),
+                        event.getEventTime(),
+                        event.getPlace(),
+                        event.getTags(),
+                        event.getParticipants().stream()
+                                .map(p -> UserProfileResponse.from(p, currentUserId))
+                                .collect(Collectors.toSet()),
+                        event.getLikes().size(),
+                        liked
+                );
+                }
+
+        private EventResponse toDto(Event event, Set<UserProfile> filteredParticipants) {
+                UUID currentUserId = getCurrentUserId();
+
+                boolean liked = event.getLikes().stream()
+                        .anyMatch(u -> u.getId().equals(currentUserId));
+
+                return new EventResponse(
+                        event.getId(),
+                        UserProfileResponse.from(event.getOrganizer(), currentUserId),
+                        event.getName(),
+                        event.getDescription(),
+                        event.getEventTime(),
+                        event.getPlace(),
+                        event.getTags(),
+                        filteredParticipants.stream()
+                                .map(p -> UserProfileResponse.from(p, currentUserId))
+                                .collect(Collectors.toSet()),
+                        event.getLikes().size(),
+                        liked
+                );
+        }
 }

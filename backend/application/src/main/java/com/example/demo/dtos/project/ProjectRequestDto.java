@@ -1,7 +1,8 @@
-package com.example.demo.dtos.event;
+package com.example.demo.dtos.project;
 
-import java.time.LocalDateTime;
 import java.util.Set;
+
+import com.example.demo.entities.ProjectStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,11 +14,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder 
-public class EventRequestDto {
+@Builder
+public class ProjectRequestDto {
     private String name;
     private String description;
-    private LocalDateTime eventTime;
-    private String place;
     private Set<String> tags;
+    private ProjectStatus status;
 }

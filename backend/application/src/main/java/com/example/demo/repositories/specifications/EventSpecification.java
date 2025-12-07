@@ -1,11 +1,14 @@
 package com.example.demo.repositories.specifications;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
 import org.springframework.data.jpa.domain.Specification;
 
 import com.example.demo.dtos.event.EventSearchRequest;
 import com.example.demo.entities.Event;
 
-import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 
 public class EventSpecification {
@@ -31,21 +34,34 @@ public class EventSpecification {
                 );
             }
 
-            if (request.eventTime() != null && !request.eventTime().isBlank()) {
-                String pattern = "%" + request.eventTime().toLowerCase() + "%";
+            // if (request.eventTime() != null && !request.eventTime().isBlank()) {
+            //     String pattern = "%" + request.eventTime().toLowerCase() + "%";
 
-                Expression<String> eventTimeStr = cb.function(
-                        "CAST",
-                        String.class,
-                        root.get("eventTime"),
-                        cb.literal("VARCHAR")
-                );
+            //     Expression<String> eventTimeStr = cb.function(
+            //             "CAST",
+            //             String.class,
+            //             root.get("eventTime"),
+            //             cb.literal("VARCHAR")
+            //     );
+
+            //     predicate = cb.and(
+            //             predicate,
+            //             cb.like(cb.lower(eventTimeStr), pattern)
+            //     );
+            // }
+
+            if (request.eventTime() != null && !request.eventTime().isBlank()) {
+                Instant instant = Instant.parse(request.eventTime());
+                LocalDateTime eventTime = LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+
+                LocalDateTime startOfDay = eventTime.toLocalDate().atStartOfDay();
+                LocalDateTime endOfDay = eventTime.toLocalDate().atTime(23, 59, 59);
 
                 predicate = cb.and(
-                        predicate,
-                        cb.like(cb.lower(eventTimeStr), pattern)
-                );
-            }
+                    predicate,
+                    cb.between(root.get("eventTime"), startOfDay, endOfDay)
+            );
+        }
 
             query.distinct(true);
 

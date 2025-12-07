@@ -43,6 +43,23 @@ public class UserProfileService {
         return toDto(profile);
     }
 
+        public UserProfileResponse createData(UserProfileRequest request) {
+
+                UserProfile profile = UserProfile.builder()
+                        .id(UUID.randomUUID()) 
+                        .firstName(request.firstName())
+                        .lastName(request.lastName())
+                        .description(request.description())
+                        .status(request.status())
+                        .skills(request.skills())
+                        .interests(request.interests())
+                        .build();
+
+                userProfileRepository.save(profile);
+
+                return toDto(profile);
+        }
+
     public List<UserProfileResponse> getRecommendations() {
 
         IUserProfile principal = (IUserProfile) SecurityContextHolder
@@ -118,6 +135,42 @@ public class UserProfileService {
         return toDto(get(id));
     }
 
+        public UserProfileResponse starUser(UUID targetUserId) {
+                UUID currentUserId = getCurrentUserId();
+
+                // if (currentUserId.equals(targetUserId)) {
+                //         throw new IllegalArgumentException("You cannot star yourself");
+                // }
+
+                UserProfile target = userProfileRepository.findById(targetUserId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + targetUserId));
+
+                UserProfile me = userProfileRepository.findById(currentUserId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUserId));
+
+                target.getStars().add(me);
+
+                UserProfile saved = userProfileRepository.save(target);
+
+                return toDto(saved); 
+        }
+
+        public UserProfileResponse unstarUser(UUID targetUserId) {
+                UUID currentUserId = getCurrentUserId();
+
+                UserProfile target = userProfileRepository.findById(targetUserId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + targetUserId));
+
+                UserProfile me = userProfileRepository.findById(currentUserId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUserId));
+
+                target.getStars().remove(me);
+
+                UserProfile saved = userProfileRepository.save(target);
+
+                return toDto(saved); 
+        }
+
     private UserProfile get(UUID id) {
         return userProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("UserProfile not found: " + id));
@@ -145,15 +198,28 @@ public class UserProfileService {
         userProfileRepository.deleteById(id);
     }
 
-    private UserProfileResponse toDto(UserProfile profile) {
-        return new UserProfileResponse(
-                profile.getId(),
-                profile.getFirstName(),
-                profile.getLastName(),
-                profile.getDescription(),
-                profile.getStatus(),
-                profile.getSkills(),
-                profile.getInterests()
-        );
+        private UserProfileResponse toDto(UserProfile profile) {
+                UUID currentUserId = getCurrentUserId();
+
+                boolean starred = profile.getStars().stream()
+                        .anyMatch(u -> u.getId().equals(currentUserId)); 
+
+                return new UserProfileResponse(
+                        profile.getId(),
+                        profile.getFirstName(),
+                        profile.getLastName(),
+                        profile.getDescription(),
+                        profile.getStatus(),
+                        profile.getSkills(),
+                        profile.getInterests(),
+                        profile.getStars().size(), 
+                        starred                   
+                );
+        }
+
+    private UUID getCurrentUserId() {
+        IUserProfile principal =
+                (IUserProfile) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return UUID.fromString(principal.getUserId());
     }
 }

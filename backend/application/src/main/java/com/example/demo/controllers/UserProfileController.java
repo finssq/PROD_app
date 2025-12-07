@@ -53,6 +53,13 @@ public class UserProfileController {
         return ResponseEntity.status(201).body(response); 
     }
 
+    @PostMapping("/data")
+    public ResponseEntity<UserProfileResponse> createData(
+            @RequestBody UserProfileRequest request) {
+        UserProfileResponse response = userProfileService.createData(request);
+        return ResponseEntity.status(201).body(response); 
+    }
+
     @GetMapping("/recommendations")
     public ResponseEntity<List<UserProfileResponse>> getRecommendations() {
         return ResponseEntity.ok(userProfileService.getRecommendations());
@@ -118,4 +125,14 @@ public class UserProfileController {
         userProfileService.delete(id);
         return ResponseEntity.noContent().build(); 
     }
+
+        @PostMapping("/{id}/star")
+        public UserProfileResponse starUser(@PathVariable UUID id) {
+                return userProfileService.starUser(id);
+        }
+
+        @DeleteMapping("/{id}/star")
+        public UserProfileResponse unstarUser(@PathVariable UUID id) {
+                return userProfileService.unstarUser(id);
+        }
 }

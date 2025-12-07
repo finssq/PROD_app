@@ -1,3 +1,5 @@
+import 'package:teste/models/event_post.dart';
+
 class UserPost {
   final String id;
   final String firstName;
@@ -43,5 +45,16 @@ class UserPost {
       'skills': skills,
       'interests': interests,
     };
+  }
+  Organizer toOrganizer() {
+    return Organizer(
+      id: id,
+      firstName: firstName,
+      lastName: lastName,
+      description: description,
+      status: status,
+      skills: skills,
+      interests: interests,
+    );
   }
 }

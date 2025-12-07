@@ -122,4 +122,14 @@ public class EventController {
     ) {
         return ResponseEntity.ok(eventService.search(request));
     }
+
+    @PostMapping("/{id}/like")
+    public EventResponse likeEvent(@PathVariable Long id) {
+        return eventService.likeEvent(id);
+    }
+
+    @DeleteMapping("/{id}/like")
+    public EventResponse unlikeEvent(@PathVariable Long id) {
+        return eventService.unlikeEvent(id);
+    }
 }

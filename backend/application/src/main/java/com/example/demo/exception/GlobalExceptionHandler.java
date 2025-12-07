@@ -44,8 +44,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler  {
     public ResponseEntity<Object> handleGlobalException(Exception ex, HttpServletRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                // "Internal Server Error",
-                ex.getMessage(),
+                "Internal Server Error",
+                // ex.getMessage(),
                 System.currentTimeMillis(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                 request.getRequestURI()

@@ -237,11 +237,10 @@ class _ProfileSearchTabState extends State<ProfileSearchTab> {
                     style: const TextStyle(color: Colors.white),
                     items: const [
                       DropdownMenuItem(value: 'WANT_COLLABORATE', child: Text('Ищет сотрудничество', style: TextStyle(fontFamily: 'Gilroy'))),
-                      DropdownMenuItem(value: 'EXPLORING_OPPORTUNITIES', child: Text('Ищу возможности', style: TextStyle(fontFamily: 'Gilroy'))),
-                      DropdownMenuItem(value: 'OPEN_TO_COLLABORATION', child: Text('Открыт к сотрудничеству', style: TextStyle(fontFamily: 'Gilroy'))),
-                      DropdownMenuItem(value: 'AVAILABLE_FOR_FEEDBACK', child: Text('Готов получать советы', style: TextStyle(fontFamily: 'Gilroy'))),
-                      DropdownMenuItem(value: 'LEADING_PROJECT', child: Text('Веду проект', style: TextStyle(fontFamily: 'Gilroy'))),
-                      DropdownMenuItem(value: 'NOT_AVAILABLE', child: Text('Не доступен', style: TextStyle(fontFamily: 'Gilroy'))),
+                      DropdownMenuItem(value: 'WANT_PROJECT', child: Text('Ищет проект', style: TextStyle(fontFamily: 'Gilroy'))),
+                      DropdownMenuItem(value: 'OPEN_TO_WORK', child: Text('Открыт к работе', style: TextStyle(fontFamily: 'Gilroy'))),
+                      DropdownMenuItem(value: 'BUSY', child: Text('Занят', style: TextStyle(fontFamily: 'Gilroy'))),
+                      DropdownMenuItem(value: 'UNAVAILABLE', child: Text('Недоступен', style: TextStyle(fontFamily: 'Gilroy'))),
                     ],
                     onChanged: (value) {
                       setState(() {

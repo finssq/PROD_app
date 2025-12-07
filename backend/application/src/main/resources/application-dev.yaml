@@ -37,7 +37,7 @@ spring:
                 registration:
                     keycloak:
                         client-id: springsecurity
-                        client-secret: 
+                        client-secret:
                         scope: openid
                         client-name: Keycloak
 
