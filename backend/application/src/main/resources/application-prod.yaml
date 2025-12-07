@@ -1,0 +1,65 @@
+server:
+    port: 8888
+    forward-headers-strategy: native
+
+spring:
+    application:
+        name: demo
+    datasource:
+        url: jdbc:postgresql://postgres:5432/postgres
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+    jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+    data:
+        mongodb:
+            uri: mongodb://mongodb:mongodb@mongodb:27017/mongodb?authSource=admin
+        redis:
+            url: redis://redis:6379
+    elasticsearch:
+        uris: http://elasticsearch:9200
+        username: elastic
+        password: elasticsearch
+
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: https://keycloak.prod-app.ru/realms/monolith-spring-boot-app
+            client:
+                provider:
+                    keycloak:
+                        issuer-uri: https://keycloak.prod-app.ru/realms/monolith-spring-boot-app
+                        user-name-attribute: preferred_username
+                registration:
+                    keycloak:
+                        client-id: springsecurity
+                        client-secret:
+                        scope: openid
+                        client-name: Keycloak
+
+minio:
+    endpoint: http://minio:9000
+    endpoint-for-users: https://minio.prod-app.ru
+    bucket: my-bucket
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health, info, prometheus
+    endpoint:
+        prometheus:
+            access: unrestricted
+
+springdoc:
+    api-docs:
+        path: /v3/api-docs
+    swagger-ui:
+        path: /swagger-ui.html
+
+# mvn spring-boot:run -D spring-boot.run.profiles=prod

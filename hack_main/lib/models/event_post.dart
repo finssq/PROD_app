@@ -19,10 +19,10 @@ class Organizer {
 
   factory Organizer.fromJson(Map<String, dynamic> json) => Organizer(
         id: json['id'],
-        firstName: json['firstName'],
-        lastName: json['lastName'],
-        description: json['description'],
-        status: json['status'],
+        firstName: json['firstName'] ?? '',
+        lastName: json['lastName'] ?? '',
+        description: json['description'] ?? '',
+        status: json['status'] ?? '',
         skills: List<String>.from(json['skills'] ?? []),
         interests: List<String>.from(json['interests'] ?? []),
       );
@@ -53,7 +53,7 @@ class EventPost {
     required this.organizer,
     required this.name,
     required this.description,
-    required this.eventTime,
+    this.eventTime,
     required this.place,
     required this.tags,
     required this.participantIds,
@@ -62,10 +62,12 @@ class EventPost {
   factory EventPost.fromJson(Map<String, dynamic> json) => EventPost(
         id: json['id'],
         organizer: Organizer.fromJson(json['organizer']),
-        name: json['name'],
-        description: json['description'],
-        eventTime: null,
-        place: json['place'],
+        name: json['name'] ?? '',
+        description: json['description'] ?? '',
+        eventTime: json['eventTime'] != null
+            ? DateTime.tryParse(json['eventTime'])
+            : null,
+        place: json['place'] ?? '',
         tags: List<String>.from(json['tags'] ?? []),
         participantIds: (json['participantIds'] as List<dynamic>?)
                 ?.map((e) => Organizer.fromJson(e))
@@ -78,7 +80,7 @@ class EventPost {
         'organizer': organizer.toJson(),
         'name': name,
         'description': description,
-        'eventTime':null,
+        'eventTime': eventTime != null ? eventTime!.toUtc().toIso8601String() : null,
         'place': place,
         'tags': tags,
         'participantIds': participantIds.map((e) => e.toJson()).toList(),

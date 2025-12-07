@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:developer'; 
 import 'package:teste/screens/tabs/profile_search_tab.dart';
 import 'package:teste/screens/tabs/event_search_tab.dart';
+import 'package:teste/screens/tabs/projects_search_tab.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -39,6 +40,7 @@ class _SearchScreenState extends State<SearchScreen> {
               tabs: [
                 Tab(text: "Профили", icon: Icon(Icons.person_search)),
                 Tab(text: "Мероприятия", icon: Icon(Icons.event)),
+                Tab(text: "Проекты", icon: Icon(Icons.folder))
               ],
             ),
           ),
@@ -47,6 +49,7 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             ProfileSearchTab(),
             EventSearchTab(),
+            ProjectsSearchTab(),
           ],
         ),
       ),

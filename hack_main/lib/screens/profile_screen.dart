@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:teste/screens/recommendation_screen.dart';
 import 'package:teste/screens/search_screen.dart';
+import 'package:teste/screens/tabs/my_events_tab.dart';
 import 'package:teste/services/auth_service.dart';
 import 'package:teste/models/user_entity.dart';
 import 'package:teste/models/user_post.dart';
@@ -1630,7 +1631,98 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
  
 
         const SizedBox(height: 16),
-
+        SizedBox(
+  width: double.infinity,
+  height: 50,
+  child: OutlinedButton(
+    onPressed: () {
+      Navigator.push(
+      context,
+      MaterialPageRoute(
+      builder: (context) => (const MyEventsTab()), // <-- сюда твоя вкладка
+    ),
+  );
+    },
+    style: OutlinedButton.styleFrom(
+      foregroundColor: Colors.white,
+      side: const BorderSide(
+        color: Color.fromARGB(255, 58, 11, 66),
+        width: 4,
+        ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      backgroundColor:Color.fromARGB(255, 139, 109, 156),
+    ),
+    child: const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.place_outlined,
+          size: 20,
+          color:Color.fromARGB(255, 58, 11, 66),
+        ),
+        SizedBox(width: 8),
+        Text(
+          "МОИ МЕРОПРИЯТИЯ",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Gilroy',
+            color:Color.fromARGB(255, 58, 11, 66),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+        const SizedBox(height: 16),
+        SizedBox(
+  width: double.infinity,
+  height: 50,
+  child: OutlinedButton(
+    onPressed: () {
+      Navigator.push(
+      context,
+      MaterialPageRoute(
+      builder: (context) => (const MyEventsTab()), // <-- сюда твоя вкладка
+    ),
+  );
+    },
+    style: OutlinedButton.styleFrom(
+      foregroundColor: Colors.white,
+      side: const BorderSide(
+        color:Color.fromARGB(255, 43, 4, 78),
+        width: 4,
+        ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      backgroundColor: Color.fromARGB(255, 152, 109, 190),
+    ),
+    child: const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.folder,
+          size: 20,
+          color:Color.fromARGB(255, 43, 4, 78),
+        ),
+        SizedBox(width: 8),
+        Text(
+          "МОИ ПРОЕКТЫ",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Gilroy',
+            color:Color.fromARGB(255, 43, 4, 78),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+        const SizedBox(height: 16),
         // Кнопка Выйти
         SizedBox(
           width: double.infinity,

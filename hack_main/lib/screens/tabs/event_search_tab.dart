@@ -6,17 +6,13 @@ import '../../services/auth_service.dart';
 import '../../models/event_post.dart';
 import 'package:teste/screens/other_profile_screen.dart';
 
+
 class EventService {
   final String baseUrl = 'https://prod-app.ru/api/events';
 
   Future<List<EventPost>> fetchEvents({List<String>? tags}) async {
     final token = await AuthService().getAccessToken();
-
-    final Map<String, dynamic> requestBody = {};
-    if (tags != null && tags.isNotEmpty) requestBody['tags'] = tags;
-
-    final bodyJson = json.encode(requestBody);
-    log('API Request Body: $bodyJson', name: 'EventService');
+    final bodyJson = json.encode(tags != null && tags.isNotEmpty ? {'tags': tags} : {});
 
     try {
       final response = await http.post(
@@ -29,23 +25,17 @@ class EventService {
         body: bodyJson,
       );
 
-      log('Response Status: ${response.statusCode}', name: 'EventService');
-      log('Response Body: ${response.body}', name: 'EventService');
-
       if (response.statusCode == 200) {
         final dynamic jsonResponse = json.decode(response.body);
-
         if (jsonResponse is List) {
           return jsonResponse.map((e) => EventPost.fromJson(e)).toList();
         }
-
         if (jsonResponse is Map) {
           return [EventPost.fromJson(Map<String, dynamic>.from(jsonResponse))];
         }
-
         return [];
       } else {
-        throw Exception('Ошибка сервера: ${response.statusCode} - ${response.body}');
+        throw Exception('Ошибка сервера: ${response.statusCode}');
       }
     } catch (e) {
       log('Error fetching events: $e', name: 'EventService');
@@ -99,7 +89,6 @@ class _EventSearchTabState extends State<EventSearchTab> {
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
         .toList();
-
     setState(() {
       _futureEvents = EventService().fetchEvents(tags: tags);
     });
@@ -108,15 +97,6 @@ class _EventSearchTabState extends State<EventSearchTab> {
   void _clearSearch() {
     _searchController.clear();
     _performSearch();
-  }
-
-  void _openParticipantProfile(Organizer participant) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ParticipantProfilePage(participant: participant),
-      ),
-    );
   }
 
   void _openEventDetails(EventPost event) {
@@ -160,12 +140,12 @@ class _EventSearchTabState extends State<EventSearchTab> {
                       borderRadius: BorderRadius.circular(50),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onChanged: (_) => _performSearch(),
                 ),
                 const SizedBox(height: 12),
-
                 Row(
                   children: [
                     Expanded(
@@ -180,7 +160,8 @@ class _EventSearchTabState extends State<EventSearchTab> {
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Искать', style: TextStyle(fontSize: 14)),
+                        child:
+                            const Text('Искать', style: TextStyle(fontSize: 14)),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -189,13 +170,15 @@ class _EventSearchTabState extends State<EventSearchTab> {
                         onPressed: _clearSearch,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color.fromRGBO(195, 194, 230, 1),
-                          side: const BorderSide(color: Color.fromRGBO(195, 194, 230, 1)),
+                          side: const BorderSide(
+                              color: Color.fromRGBO(195, 194, 230, 1)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Очистить', style: TextStyle(fontSize: 14)),
+                        child:
+                            const Text('Очистить', style: TextStyle(fontSize: 14)),
                       ),
                     ),
                   ],
@@ -203,7 +186,6 @@ class _EventSearchTabState extends State<EventSearchTab> {
               ],
             ),
           ),
-
           Expanded(
             child: FutureBuilder<List<EventPost>>(
               future: _futureEvents,
@@ -219,9 +201,9 @@ class _EventSearchTabState extends State<EventSearchTab> {
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
-                      child: Text('События не найдены', style: TextStyle(color: Colors.white)));
+                      child: Text('События не найдены',
+                          style: TextStyle(color: Colors.white)));
                 }
-
                 final events = snapshot.data!;
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -232,8 +214,10 @@ class _EventSearchTabState extends State<EventSearchTab> {
                       color: const Color.fromARGB(255, 25, 14, 39),
                       margin: const EdgeInsets.only(bottom: 16),
                       child: ListTile(
-                        title: Text(event.name, style: const TextStyle(color: Colors.white)),
-                        subtitle: Text(event.description, style: const TextStyle(color: Colors.white70)),
+                        title:
+                            Text(event.name, style: const TextStyle(color: Colors.white)),
+                        subtitle: Text(event.description,
+                            style: const TextStyle(color: Colors.white70)),
                         onTap: () => _openEventDetails(event),
                       ),
                     );
@@ -298,11 +282,18 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     });
   }
 
-  void _openParticipantProfile(Organizer participant) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ParticipantProfilePage(participant: participant),
+  void _openParticipantProfile(BuildContext context, Organizer participant) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Color.fromRGBO(26, 15, 41, 1),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: OtherUserProfilePage(userId: participant.id),
       ),
     );
   }
@@ -343,12 +334,11 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
               Text('Описание: ${_event!.description}',
                   style: const TextStyle(fontSize: 18, color: Colors.white)),
               const SizedBox(height: 10),
-              Text('Место: ${_event!.place}', style: const TextStyle(color: Colors.white70)),
+              Text('Место: ${_event!.place}',
+                  style: const TextStyle(color: Colors.white70)),
               Text('Время: ${_event!.eventTime ?? "Не указано"}',
                   style: const TextStyle(color: Colors.white70)),
               const SizedBox(height: 10),
-              const Text('Теги:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
               Wrap(
                 spacing: 8,
                 runSpacing: 4,
@@ -360,24 +350,19 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     .toList(),
               ),
               const SizedBox(height: 20),
-              const Text('Фильтр участников по навыкам (через запятую):',
-              
-                  style: TextStyle(fontSize: 16, color: Colors.white)),
-              const SizedBox(height: 20),
               TextField(
                 controller: _skillController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'Введите навыки через запятую',
+                  hintText: 'Фильтр участников по навыкам',
                   hintStyle: const TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: const Color.fromRGBO(26, 15, 41, 1),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(50),
-                    borderSide: const BorderSide(color: Color.fromRGBO(198, 125, 212, 1)) ,
+                    borderSide: const BorderSide(color: Color.fromRGBO(198, 125, 212, 1)),
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 onChanged: (_) => _filterParticipants(),
               ),
@@ -392,7 +377,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         style: const TextStyle(color: Colors.white)),
                     subtitle: Text('Навыки: ${participant.skills.join(", ")}',
                         style: const TextStyle(color: Colors.white70)),
-                    onTap: () => _openParticipantProfile(participant),
+                    onTap: () => _openParticipantProfile(context, participant),
                   ),
                 ),
               ),
@@ -400,23 +385,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class ParticipantProfilePage extends StatelessWidget {
-  final Organizer participant;
-
-  const ParticipantProfilePage({required this.participant});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${participant.firstName} ${participant.lastName}'),
-        backgroundColor: const Color.fromRGBO(26, 15, 41, 1),
-      ),
-      body: OtherUserProfilePage(userId: participant.id),
     );
   }
 }

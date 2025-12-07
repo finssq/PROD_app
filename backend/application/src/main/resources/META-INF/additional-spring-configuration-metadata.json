@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "minio.endpoint",
+    "type": "java.lang.String",
+    "description": "A description for 'minio.endpoint'"
+  },
+  {
+    "name": "minio.bucket",
+    "type": "java.lang.String",
+    "description": "A description for 'minio.bucket'"
+  },
+  {
+    "name": "minio.endpoint-for-users",
+    "type": "java.lang.String",
+    "description": "A description for 'minio.endpoint-for-users'"
+  }
+]}

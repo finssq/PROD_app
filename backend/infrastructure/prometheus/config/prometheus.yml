@@ -1,0 +1,58 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+  
+  - job_name: "postgres-exporter"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+  
+  - job_name: "keycloak-postgres-exporter"
+    static_configs:
+      - targets: ["keycloak-postgres-exporter:9187"]
+
+  - job_name: "redis-exporter"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+
+  - job_name: "mongodb-exporter"
+    static_configs:
+      - targets: ["mongodb-exporter:9216"]
+
+  - job_name: "elasticsearch-exporter"
+    static_configs:
+      - targets: ["elasticsearch-exporter:9114"]
+
+  - job_name: "loki"
+    static_configs:
+      - targets: ["loki:3100"]
+
+  - job_name: "grafana"
+    static_configs:
+      - targets: ["grafana:3000"]
+
+  - job_name: "keycloak"
+    static_configs:
+      - targets: ["keycloak:9002"]
+  
+  # - job_name: 'node-exporter'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:9105']
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100'] 
+  
+  - job_name: 'spring-boot-app'
+    static_configs:
+      - targets: ['spring-boot-app:8888']
+    metrics_path: '/actuator/prometheus'

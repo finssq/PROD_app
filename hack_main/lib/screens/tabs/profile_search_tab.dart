@@ -35,10 +35,21 @@ class _ProfileSearchTabState extends State<ProfileSearchTab> {
   Future<List<UserPost>> _fetchUserPosts() async {
     final token = await AuthService().getAccessToken();
 
+    // Разделяем введенный текст на firstName и lastName
+    String firstName = '';
+    String lastName = '';
+    final parts = _searchController.text.trim().split(' ');
+    if (parts.isNotEmpty) {
+      firstName = parts[0];
+      if (parts.length > 1) {
+        lastName = parts.sublist(1).join(' ');
+      }
+    }
+
     final Map<String, dynamic> requestBody = {
-      "firstName": _searchController.text.trim(),
-      "lastName": _searchController.text.trim(),
-      "description": _searchController.text.trim(),
+      "firstName": firstName.isEmpty ? null : firstName,
+      "lastName": lastName.isEmpty ? null : lastName,
+      "description": null,
       "status": _selectedStatus,
     };
 
@@ -51,7 +62,6 @@ class _ProfileSearchTabState extends State<ProfileSearchTab> {
     }
 
     final bodyJson = json.encode(requestBody);
-
     log('API Request Body: $bodyJson', name: 'SearchScreen');
 
     try {
@@ -149,7 +159,7 @@ class _ProfileSearchTabState extends State<ProfileSearchTab> {
                     onSubmitted: (_) => _performSearch(),
                   ),
                   const SizedBox(height: 16),
-
+                  // Навыки и интересы
                   Row(
                     children: [
                       Expanded(
@@ -214,7 +224,6 @@ class _ProfileSearchTabState extends State<ProfileSearchTab> {
                     ],
                   ),
                   const SizedBox(height: 8),
-
                   DropdownButtonFormField<String>(
                     value: _selectedStatus,
                     decoration: InputDecoration(
@@ -240,49 +249,6 @@ class _ProfileSearchTabState extends State<ProfileSearchTab> {
                       _performSearch();
                     },
                   ),
-
-                  if (_selectedSkills.isNotEmpty || _selectedInterests.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[900],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade700),
-                        ),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: [
-                            ..._selectedSkills.map((skill) => Chip(
-                              label: Text(skill, style: const TextStyle(color: Colors.white)),
-                              backgroundColor: const Color.fromARGB(103, 21, 101, 192),
-                              deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-                              onDeleted: () {
-                                setState(() {
-                                  _selectedSkills.remove(skill);
-                                });
-                                _performSearch();
-                              },
-                            )),
-                            ..._selectedInterests.map((interest) => Chip(
-                              label: Text(interest, style: const TextStyle(color: Colors.white)),
-                              backgroundColor: const Color.fromARGB(111, 46, 125, 50),
-                              deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-                              onDeleted: () {
-                                setState(() {
-                                  _selectedInterests.remove(interest);
-                                });
-                                _performSearch();
-                              },
-                            )),
-                          ],
-                        ),
-                      ),
-                    ),
-
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -298,17 +264,17 @@ class _ProfileSearchTabState extends State<ProfileSearchTab> {
                       const SizedBox(width: 8),
                       OutlinedButton(
                         onPressed: _clearFilters,
-                        child: const Text('Очистить'),
+                        child: const Text('Очистить', style: TextStyle(color: Colors.white)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-
             const Divider(height: 1, color: Colors.grey),
-
-            // Нижняя часть с результатами поиска
             Expanded(
               child: FutureBuilder<List<UserPost>>(
                 future: _futureUserPosts,
@@ -370,12 +336,15 @@ class _ProfileSearchTabState extends State<ProfileSearchTab> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        '${userPost.firstName} ${userPost.lastName}',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                      Expanded(
+                                        child: Text(
+                                          '${userPost.firstName} ${userPost.lastName}',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                       Container(
