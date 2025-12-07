@@ -89,7 +89,6 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Градиентный фон
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -105,7 +104,6 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
         child: SafeArea(
           child: Column(
             children: [
-              // AppBar
               Container(
                 height: kToolbarHeight,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -137,7 +135,6 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
                 ),
               ),
 
-              // Контент
               Expanded(
                 child: _loading
                     ? const Center(

@@ -34,13 +34,16 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
   // Статусы для выпадающего списка
   final Map<String, String> _statusOptions = {
     'WANT_COLLABORATE': 'Ищу напарника',
-    'BUSY': 'Занят(а)',
-    'LOOKING_FOR_WORK': 'Ищу работу',
+    'EXPLORING_OPPORTUNITIES' : 'Ищу новые возможности',
+    'OPEN_TO_COLLABORATION' : 'Открыт к сотрудничеству',
+    'AVAILABLE_FOR_FEEDBACK': 'Готов получать советы',
+    'LEADING_PROJECT': 'Веду проект',
+    'LOOKING_FOR_TEAM' : 'Ищу команду',
+    'NOT_AVAILABLE':'Не доступен',
   };
 
   String _selectedStatus = 'WANT_COLLABORATE';
 
-  // Контроллеры
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -49,7 +52,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
   final _skillsInputController = TextEditingController();
   final _interestsInputController = TextEditingController();
 
-  // Base URL для API - БЕЗ /api!
   final String _baseUrl = 'https://prod-app.ru';
 
   @override
@@ -90,7 +92,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
     } catch (_) {}
   }
 
-  // ЗАГРУЗКА профиля с API (GET запрос)
   Future<void> _loadUserProfile() async {
     if (_user == null || _user!.id.isEmpty) return;
 
@@ -102,17 +103,14 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
 
       log('Загрузка профиля пользователя ${_user!.id}', name: 'ProfileService');
 
-      // СОЗДАЕМ HTTP КЛИЕНТ С ОБХОДОМ SSL ПРОВЕРКИ
       final httpClient = HttpClient();
 
-      // ОБХОДИМ SSL ПРОВЕРКУ
       httpClient.badCertificateCallback =
           (X509Certificate cert, String host, int port) {
         log('Обход SSL проверки для $host:$port', name: 'ProfileService');
         return true;
       };
 
-      // Пробуем разные URL для GET запроса
       final getUrls = [
         '$_baseUrl/api/user-profiles/${_user!.id}',  // с /api
         '$_baseUrl/user-profiles/${_user!.id}',      // без /api
@@ -147,7 +145,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                 _lastNameController.text = _userProfile?.lastName ?? '';
                 _descriptionController.text = _userProfile?.description ?? '';
 
-                // Устанавливаем статус из профиля или дефолтный
                 _selectedStatus = _userProfile?.status ?? 'WANT_COLLABORATE';
               });
             }
@@ -157,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
           } else if (response.statusCode == 404) {
             log('Профиль не найден по URL: $url', name: 'ProfileService');
             lastError = 'Профиль не найден (404)';
-            continue; // Пробуем следующий URL
+            continue; 
           }
 
         } catch (e) {
@@ -166,7 +163,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
         }
       }
 
-      // Если все URL вернули 404, значит профиля действительно нет
       log('Профиль не найден ни по одному URL, будет создан новый', name: 'ProfileService');
       if (mounted) {
         setState(() {
@@ -185,8 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
     }
   }
 
-  // СОХРАНЕНИЕ профиля
-// СОХРАНЕНИЕ профиля
+
   Future<void> _saveProfile() async {
     if (_user == null || _user!.id.isEmpty) {
       _showSnackBar('ID пользователя не найден', isError: true);
@@ -217,10 +212,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
       log('Пробуем создать/обновить профиль', name: 'ProfileService');
       log('Данные для отправки: ${json.encode(requestData)}', name: 'ProfileService');
 
-      // Используем пакет http вместо HttpClient
-      // Пробуем разные URL в порядке приоритета
-
-      // 1. POST без ID в URL
       try {
         log('Попытка 1: POST на $_baseUrl/user-profiles', name: 'ProfileService');
         final response = await http.post(
@@ -247,7 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
         log('Ошибка в попытке 1: $e', name: 'ProfileService');
       }
 
-      // 2. POST с ID в URL
+  
       try {
         log('Попытка 2: POST на $_baseUrl/user-profiles/${_user!.id}', name: 'ProfileService');
         final response = await http.post(
@@ -274,7 +265,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
         log('Ошибка в попытке 2: $e', name: 'ProfileService');
       }
 
-      // 3. PUT с ID - с /api
       try {
         log('Попытка 3: PUT на $_baseUrl/api/user-profiles/${_user!.id}', name: 'ProfileService');
         final response = await http.put(
@@ -301,7 +291,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
         log('Ошибка в попытке 3: $e', name: 'ProfileService');
       }
 
-      // 4. POST с /api
       try {
         log('Попытка 4: POST на $_baseUrl/api/user-profiles', name: 'ProfileService');
         final response = await http.post(
@@ -328,7 +317,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
         log('Ошибка в попытке 4: $e', name: 'ProfileService');
       }
 
-      // 5. PATCH запрос (на всякий случай)
       try {
         log('Попытка 5: PATCH на $_baseUrl/api/user-profiles/${_user!.id}', name: 'ProfileService');
         final response = await http.patch(
@@ -365,7 +353,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
     }
   }
 
-  // Методы для работы с навыками (только локальное обновление состояния)
   void _addSkill() {
     final text = _skillsInputController.text.trim();
     if (text.isEmpty) {
@@ -456,7 +443,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
     );
   }
 
-  // Методы для работы с интересами (только локальное обновление состояния)
+
   void _addInterest() {
     final text = _interestsInputController.text.trim();
     if (text.isEmpty) {
@@ -560,7 +547,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
     }
   }
 
-  // Начинаем редактирование
   void _startEditing() {
     setState(() {
       _isEditing = true;
@@ -574,7 +560,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
     });
   }
 
-  // Отменяем редактирование
   void _cancelEditing() {
     setState(() {
       _isEditing = false;
@@ -872,7 +857,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
     );
   }
 
-  // Форма редактирования профиля
   Widget _buildEditForm() {
     return Container(
       constraints: BoxConstraints(
@@ -880,7 +864,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
       ),
       child: Column(
         children: [
-          // Avatar
           CircleAvatar(
             radius: 50,
             backgroundColor: Colors.white,
@@ -894,7 +877,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
           ),
           const SizedBox(height: 16),
 
-          // User ID
           Text(
             'ID: ${_user!.id}',
             style: const TextStyle(color: Colors.grey, fontSize: 14),
@@ -902,7 +884,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
           ),
           const SizedBox(height: 4),
 
-          // Username
           Text(
             _user!.username,
             style: const TextStyle(
@@ -911,7 +892,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
           ),
           const SizedBox(height: 4),
 
-          // Email
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -929,7 +909,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
           ),
           const SizedBox(height: 24),
 
-          // Edit Form
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -940,7 +919,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // First Name
+          
                 _buildFormField(
                   label: 'Имя',
                   controller: _firstNameController,
@@ -948,7 +927,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                 ),
                 const SizedBox(height: 16),
 
-                // Last Name
+        
                 _buildFormField(
                   label: 'Фамилия',
                   controller: _lastNameController,
@@ -956,7 +935,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                 ),
                 const SizedBox(height: 16),
 
-                // Description
+     
                 _buildFormField(
                   label: 'Описание',
                   controller: _descriptionController,
@@ -965,15 +944,12 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                 ),
                 const SizedBox(height: 16),
 
-                // Status Dropdown
+
                 _buildStatusDropdown(),
                 const SizedBox(height: 32),
-
-                // Skills Component
                 _buildSkillsField(),
                 const SizedBox(height: 16),
 
-                // Interests Component
                 _buildInterestsField(),
               ],
             ),
@@ -981,7 +957,6 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
 
           const SizedBox(height: 32),
 
-          // Save Button
           _buildSaveButton(),
         ],
       ),
@@ -1035,7 +1010,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
     );
   }
 
-  // Виджет выпадающего списка статусов
+
   Widget _buildStatusDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1067,7 +1042,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                   value: entry.key,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(entry.value),
+                    child: Text(entry.value, style: TextStyle(fontFamily: 'Gilroy')),
                   ),
                 );
               }).toList(),

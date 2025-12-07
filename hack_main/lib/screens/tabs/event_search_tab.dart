@@ -6,13 +6,13 @@ import '../../services/auth_service.dart';
 import '../../models/event_post.dart';
 import 'package:teste/screens/other_profile_screen.dart';
 
-
 class EventService {
   final String baseUrl = 'https://prod-app.ru/api/events';
 
   Future<List<EventPost>> fetchEvents({List<String>? tags}) async {
     final token = await AuthService().getAccessToken();
-    final bodyJson = json.encode(tags != null && tags.isNotEmpty ? {'tags': tags} : {});
+    final bodyJson =
+        json.encode(tags != null && tags.isNotEmpty ? {'tags': tags} : {});
 
     try {
       final response = await http.post(
@@ -64,6 +64,28 @@ class EventService {
       rethrow;
     }
   }
+
+  Future<void> joinEvent(int eventId) async {
+    final token = await AuthService().getAccessToken();
+    await http.post(
+      Uri.parse('$baseUrl/$eventId/participants'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+  }
+
+  Future<void> leaveEvent(int eventId) async {
+    final token = await AuthService().getAccessToken();
+    await http.delete(
+      Uri.parse('$baseUrl/$eventId/participants'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+  }
 }
 
 class EventSearchTab extends StatefulWidget {
@@ -76,11 +98,21 @@ class EventSearchTab extends StatefulWidget {
 class _EventSearchTabState extends State<EventSearchTab> {
   final TextEditingController _searchController = TextEditingController();
   Future<List<EventPost>>? _futureEvents;
+  String currentUserId = "";
+  Map<int, bool> userParticipation = {};
 
   @override
   void initState() {
     super.initState();
+    _loadCurrentUser();
     _performSearch();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final user = await AuthService().getUserInfo();
+    setState(() {
+      currentUserId = user.id;
+    });
   }
 
   void _performSearch() {
@@ -103,7 +135,118 @@ class _EventSearchTabState extends State<EventSearchTab> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => EventDetailsPage(eventId: event.id!, eventName: event.name),
+        builder: (_) => EventDetailsPageWrapper(
+          event: event,
+          currentUserId: currentUserId,
+          joinEvent: (id) => EventService().joinEvent(id),
+          leaveEvent: (id) => EventService().leaveEvent(id),
+        ),
+      ),
+    );
+  }
+
+  String formatEventTime(dynamic eventTime) {
+    if (eventTime == null) return "Не указано";
+    try {
+      DateTime dt;
+      if (eventTime is String) {
+        dt = DateTime.parse(eventTime);
+      } else if (eventTime is DateTime) {
+        dt = eventTime;
+      } else {
+        return eventTime.toString();
+      }
+      return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+    } catch (_) {
+      return eventTime.toString();
+    }
+  }
+
+  Widget _buildEventCard(EventPost event) {
+    final participating = userParticipation[event.id!] ?? false;
+
+    return Card(
+      color: const Color(0xFF2A1B3D),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () => _openEventDetails(event),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(event.name,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
+                  const SizedBox(height: 8),
+                  Text(event.description,
+                      style: const TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.place_outlined,
+                          color: Colors.white, size: 16),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          event.place,
+                          style: const TextStyle(color: Colors.white),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.access_time, color: Colors.white, size: 16),
+                      const SizedBox(width: 4),
+                      Text(formatEventTime(event.eventTime),
+                          style: const TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  if (event.tags.isNotEmpty)
+                    Wrap(
+                      spacing: 6,
+                      children: event.tags
+                          .map((t) => Chip(
+                                label: Text(t),
+                                backgroundColor: Colors.deepPurpleAccent,
+                                labelStyle:
+                                    const TextStyle(color: Colors.white),
+                              ))
+                          .toList(),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 71, 34, 100),
+              ),
+              onPressed: () async {
+                setState(() {
+                  userParticipation[event.id!] = !participating;
+                });
+
+                if (participating) {
+                  await EventService().leaveEvent(event.id!);
+                } else {
+                  await EventService().joinEvent(event.id!);
+                }
+              },
+              child: Text(
+                participating ? 'Отменить участие' : 'Вступить',
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -153,7 +296,8 @@ class _EventSearchTabState extends State<EventSearchTab> {
                         onPressed: _performSearch,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color.fromARGB(255, 98, 23, 133),
-                          foregroundColor: const Color.fromRGBO(195, 194, 230, 1),
+                          foregroundColor:
+                              const Color.fromRGBO(195, 194, 230, 1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
                           ),
@@ -169,7 +313,8 @@ class _EventSearchTabState extends State<EventSearchTab> {
                       child: OutlinedButton(
                         onPressed: _clearSearch,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color.fromRGBO(195, 194, 230, 1),
+                          foregroundColor:
+                              const Color.fromRGBO(195, 194, 230, 1),
                           side: const BorderSide(
                               color: Color.fromRGBO(195, 194, 230, 1)),
                           shape: RoundedRectangleBorder(
@@ -177,8 +322,8 @@ class _EventSearchTabState extends State<EventSearchTab> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child:
-                            const Text('Очистить', style: TextStyle(fontSize: 14)),
+                        child: const Text('Очистить',
+                            style: TextStyle(fontSize: 14)),
                       ),
                     ),
                   ],
@@ -210,17 +355,7 @@ class _EventSearchTabState extends State<EventSearchTab> {
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     final event = events[index];
-                    return Card(
-                      color: const Color.fromARGB(255, 25, 14, 39),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: ListTile(
-                        title:
-                            Text(event.name, style: const TextStyle(color: Colors.white)),
-                        subtitle: Text(event.description,
-                            style: const TextStyle(color: Colors.white70)),
-                        onTap: () => _openEventDetails(event),
-                      ),
-                    );
+                    return _buildEventCard(event);
                   },
                 );
               },
@@ -232,87 +367,85 @@ class _EventSearchTabState extends State<EventSearchTab> {
   }
 }
 
-class EventDetailsPage extends StatefulWidget {
-  final int eventId;
-  final String eventName;
+class EventDetailsPageWrapper extends StatefulWidget {
+  final EventPost event;
+  final String currentUserId;
+  final Future<void> Function(int) joinEvent;
+  final Future<void> Function(int) leaveEvent;
 
-  const EventDetailsPage({required this.eventId, required this.eventName});
+  const EventDetailsPageWrapper({
+    super.key,
+    required this.event,
+    required this.currentUserId,
+    required this.joinEvent,
+    required this.leaveEvent,
+  });
 
   @override
-  State<EventDetailsPage> createState() => _EventDetailsPageState();
+  State<EventDetailsPageWrapper> createState() =>
+      _EventDetailsPageWrapperState();
 }
 
-class _EventDetailsPageState extends State<EventDetailsPage> {
-  EventPost? _event;
-  List<Organizer> _allParticipants = [];
-  List<Organizer> _filteredParticipants = [];
-  final TextEditingController _skillController = TextEditingController();
+class _EventDetailsPageWrapperState extends State<EventDetailsPageWrapper> {
+  late EventPost event;
+  late bool participating;
 
   @override
   void initState() {
     super.initState();
-    _fetchEventDetails();
+    event = widget.event;
+    participating =
+        event.participantIds.any((p) => p.id == widget.currentUserId);
   }
 
-  Future<void> _fetchEventDetails() async {
-    final event = await EventService().fetchEventById(widget.eventId);
+  void _toggleParticipation() async {
     setState(() {
-      _event = event;
-      _allParticipants = event.participantIds;
-      _filteredParticipants = _allParticipants;
-    });
-  }
-
-  void _filterParticipants() {
-    final skillsInput = _skillController.text
-        .split(',')
-        .map((s) => s.trim().toLowerCase())
-        .where((s) => s.isNotEmpty)
-        .toList();
-
-    setState(() {
-      if (skillsInput.isEmpty) {
-        _filteredParticipants = _allParticipants;
+      participating = !participating;
+      if (participating) {
+        event.participantIds.add(Organizer(
+          id: widget.currentUserId,
+          firstName: '',
+          lastName: '',
+          description: '',
+          status: '',
+          skills: [],
+          interests: [],
+        ));
       } else {
-        _filteredParticipants = _allParticipants.where((p) {
-          return skillsInput.every((skill) =>
-              p.skills.any((s) => s.toLowerCase().contains(skill)));
-        }).toList();
+        event.participantIds
+            .removeWhere((p) => p.id == widget.currentUserId);
       }
     });
+
+    if (participating) {
+      await widget.joinEvent(event.id!);
+    } else {
+      await widget.leaveEvent(event.id!);
+    }
   }
 
-  void _openParticipantProfile(BuildContext context, Organizer participant) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Color.fromRGBO(26, 15, 41, 1),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: OtherUserProfilePage(userId: participant.id),
-      ),
-    );
+  String formatEventTime(dynamic eventTime) {
+    if (eventTime == null) return "Не указано";
+    try {
+      DateTime dt;
+      if (eventTime is String) {
+        dt = DateTime.parse(eventTime);
+      } else if (eventTime is DateTime) {
+        dt = eventTime;
+      } else {
+        return eventTime.toString();
+      }
+      return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+    } catch (_) {
+      return eventTime.toString();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_event == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.eventName),
-          backgroundColor: const Color.fromRGBO(26, 15, 41, 1),
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(_event!.name),
+        title: Text(event.name),
         backgroundColor: const Color.fromRGBO(26, 15, 41, 1),
       ),
       body: Container(
@@ -327,62 +460,44 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             ],
           ),
         ),
-        child: Padding(
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          child: ListView(
-            children: [
-              Text('Описание: ${_event!.description}',
-                  style: const TextStyle(fontSize: 18, color: Colors.white)),
-              const SizedBox(height: 10),
-              Text('Место: ${_event!.place}',
-                  style: const TextStyle(color: Colors.white70)),
-              Text('Время: ${_event!.eventTime ?? "Не указано"}',
-                  style: const TextStyle(color: Colors.white70)),
-              const SizedBox(height: 10),
+          children: [
+            Text('Описание: ${event.description}',
+                style: const TextStyle(fontSize: 18, color: Colors.white)),
+            const SizedBox(height: 10),
+            Text('Место: ${event.place}',
+                style: const TextStyle(color: Colors.white70)),
+            Text('Время: ${formatEventTime(event.eventTime)}',
+                style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 10),
+            if (event.tags.isNotEmpty)
               Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: _event!.tags
-                    .map((tag) => Chip(
-                          label: Text(tag, style: const TextStyle(color: Colors.white)),
-                          backgroundColor: const Color.fromARGB(255, 50, 6, 75),
+                spacing: 6,
+                children: event.tags
+                    .map((t) => Chip(
+                          label: Text(
+                            t,
+                            style: const TextStyle(
+                                color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                          backgroundColor: Colors.deepPurpleAccent,
                         ))
                     .toList(),
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _skillController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Фильтр участников по навыкам',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: const Color.fromRGBO(26, 15, 41, 1),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide: const BorderSide(color: Color.fromRGBO(198, 125, 212, 1)),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                onChanged: (_) => _filterParticipants(),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 71, 34, 100),
               ),
-              const SizedBox(height: 10),
-              const Text('Участники:',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-              ..._filteredParticipants.map(
-                (participant) => Card(
-                  color: const Color.fromRGBO(26, 15, 41, 1),
-                  child: ListTile(
-                    title: Text('${participant.firstName} ${participant.lastName}',
-                        style: const TextStyle(color: Colors.white)),
-                    subtitle: Text('Навыки: ${participant.skills.join(", ")}',
-                        style: const TextStyle(color: Colors.white70)),
-                    onTap: () => _openParticipantProfile(context, participant),
-                  ),
-                ),
+              onPressed: _toggleParticipation,
+              child: Text(
+                participating ? 'Отменить участие' : 'Вступить',
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600, color: Colors.white),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
